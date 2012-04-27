@@ -151,3 +151,51 @@ you need.
 
 This will print out only the migration SQL suitable for running on a MySQL 
 instance.  You may save this output in a file, or copy and paste it to run it.
+
+# bin/migrate script
+    $ bin/migrate --help
+    Database Migration Command Line Interface
+    
+    Usage:
+      bin/migrate [options] <version>
+      bin/migrate [options] <command> [options] [args]
+    
+    Options:
+      -n, --dry-run                    If specified, no migrations will be
+                                       executed.
+      -o, --output-only                If specified, no migrations will be
+                                       executed, and no log messages will be
+                                       printed.  Instead, executable SQL will
+                                       be printed to STDOUT.
+      -a, --all                        If specified, then ALL migrations in the
+                                       given range will be attempted to be run,
+                                       regardless of their migrated_at status. 
+                                       This is useful with the --output-only
+                                       flag, so that you may print out all
+                                       migrations in given range.
+      -m PATH, --migrations-path=PATH  Path to directory where migrations are
+                                       stored.  If this is not specified the
+                                       default path from Kohana
+                                       config/migrations.php will be used.
+      -s, --skip-schema-version        Don't update the schema_version table
+                                       after running migrations.
+      -h, --help                       show this help message and exit
+    
+    Arguments:
+      version  Version to migrate to.   This may be a single version (e.g. 5),
+               or a version range (e.g. 20120101000039:20120104192233).  A
+               version range of X:Y will migrate from X (exclusive) to Y
+               (inclusive).  You may also use X: to migrate from X to the
+               latest schema version.  Optional.  If not specified, then this
+               will migrate all un migrated versions.  You may also add a minus
+               or plus (- or +) at the beginning of a version number, to
+               indicate that you would like to run that single migration down
+               or up. (e.g. -20120101000039 or +20120101000039).  Note that to
+               use a minus sign, you must add -- before your version argument
+               to indicate that the version argument is not a command line
+               option. (e.g.  bin/migrate -- -20120101000039).
+    
+    Commands:
+      status    Prints out database migration status, including the current
+                database version.
+      generate  Generates a new skeleton migration file

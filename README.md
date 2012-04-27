@@ -153,6 +153,7 @@ This will print out only the migration SQL suitable for running on a MySQL
 instance.  You may save this output in a file, or copy and paste it to run it.
 
 # bin/migrate script
+## --help
     $ bin/migrate --help
     Database Migration Command Line Interface
     
@@ -199,3 +200,19 @@ instance.  You may save this output in a file, or copy and paste it to run it.
       status    Prints out database migration status, including the current
                 database version.
       generate  Generates a new skeleton migration file
+## example --status
+    $ bin/migrate status
+
+    Database Schema Migration Status
+      Migrations last ran at:           2012-02-28 21:02:29
+    +---------------------------------------------------------------+----------------+---------------------+
+    | Migration Name                                                | Version        | migrated_at         |
+    +---------------------------------------------------------------+----------------+---------------------+
+    | base_schema                                                   | 0              | 2012-01-17 20:27:49 |
+    | Survey_info_create_table                                      | 20120101000001 | 2012-01-17 20:27:49 |
+    | campaign_schema                                               | 20120101000002 | 2012-01-17 20:27:49 |
+    | Survey_info_and_research_survey                               | 20120101000003 | 2012-01-17 20:27:49 |
+    | activity_sphinx_index                                         | 20120101000004 | 2012-01-17 20:27:49 |
+    | tr_i18n_archive                                               | 20120101000005 | 2012-01-17 20:27:49 |
+    | drop_org_goal_tables                                          | 20120101000006 | 2012-01-17 20:27:49 |
+    ...

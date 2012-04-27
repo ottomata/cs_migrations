@@ -27,7 +27,7 @@ methods.  The 'up' method is used for running migrations forward, and 'down'
 is used to migrate backwards.  
 
 # Example
-Example File: 20120104192233_CreateMyTable.php
+Example File: 20120104192233_AlterMyTable.php
 
     class AlterMyTable extends Migration
     {

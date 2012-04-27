@@ -4,7 +4,7 @@ reference.  This code will not work by itself, but could be adapted into a more
 general PHP MySQL migrations library.
 
 
-h1. What are Migrations?
+# What are Migrations?
 Migrations are a way to keep database schema changes in a version control 
 system.  Often, migrations are coded in a database-agnostic manner.  Meaning 
 that the DDL statements are usually abstracted so that any database schema may
@@ -21,7 +21,7 @@ the 'down' method.  Your migration subclass must implement both of these
 methods.  The 'up' method is used for running migrations forward, and 'down' 
 is used to migrate backwards.  
 
-h1. Example
+# Example
 Example File: 20120104192233_CreateMyTable.php
 
     class AlterMyTable extends Migration
@@ -58,7 +58,7 @@ to the schema_migration table.  If you tell it to do so, the migrate
 script will automatically run this new migration's up() method.
 See the migrate script's help documentation by running 'migrate --help'.
 
-h1. Use Case
+# Use Case 1
 Doodeedoo, here I am, a happy developer working on code.  I'll be a good 
 developer and run svn update before continuing to work.  Oh!  Look!  Someone 
 checked in a new migration!  I will run the migrate script to make sure my 
@@ -108,7 +108,7 @@ we go, now it looks like this:
 Beautiful.  Now I can run the migrate script to get the index, and check this 
 file in so that other developers can get the index on their databases as well.
 
-h1. Use Case 2: Database Creation
+# Use Case 2: Database Creation
 Very rarely you will have to create or drop an actual database.  Migrations 
 supports this, but it is best if you do not use the statement() method to run 
 direct CREATE and DROP DATABASE statements.  Instead, use the methods 
@@ -132,7 +132,7 @@ The database name to create or dropped will be inferred from the database
 configs for the 'cs_yay' connection.  Note that this requires that the 'cs_yay' 
 connection is actually defined in the config/database.php file.
 
-h1. But what about production databases?
+#. But what about production databases?
 Migrations are not intended to be run directly on anything but the developer 
 databases.  They do two important things.
 - Keep track of schema changes.

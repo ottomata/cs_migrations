@@ -3,6 +3,11 @@ framework.  It has been extracted from CouchSurfing's codebase and put here for
 reference.  This code will not work by itself, but could be adapted into a more
 general PHP MySQL migrations library.
 
+Also note that the use of timestamped migrations, rather than incremental
+migration numbers was hacked on as an after the fact modification and
+not part of the original design.  I would change some of the logic and
+structure dealing with timestamped migrations if I had to do this again :)
+
 
 # What are Migrations?
 Migrations are a way to keep database schema changes in a version control 
@@ -132,7 +137,7 @@ The database name to create or dropped will be inferred from the database
 configs for the 'cs_yay' connection.  Note that this requires that the 'cs_yay' 
 connection is actually defined in the config/database.php file.
 
-#. But what about production databases?
+# But what about production databases?
 Migrations are not intended to be run directly on anything but the developer 
 databases.  They do two important things.
 - Keep track of schema changes.

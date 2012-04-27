@@ -1,0 +1,222 @@
+#!/bin/env php
+<?php
+require_once('Console/CommandLine.php');
+
+// create the CommandLine parser
+$parser = new Console_CommandLine(array(
+    'description' => 'Database Migration Command Line Interface',
+));
+$parser->addOption('dry_run', array(
+	'short_name'  => '-n',
+	'long_name'   => '--dry-run',
+	'action'      => 'StoreTrue',
+	'description' => 'If specified, no migrations will be executed.',
+	)
+);
+$parser->addOption('output_only', array(
+	'short_name'  => '-o',
+	'long_name'   => '--output-only',
+	'action'      => 'StoreTrue',
+	'description' => 'If specified, no migrations will be executed, and no log messages will be printed.  Instead, executable SQL will be printed to STDOUT.',
+	)
+);
+$parser->addOption('all_migrations', array(
+	'short_name'  => '-a',
+	'long_name'   => '--all',
+	'action'      => 'StoreTrue',
+	'description' => 'If specified, then ALL migrations in the given range will be attempted to be run, regardless of their migrated_at status.  This is useful with the --output-only flag, so that you may print out all migrations in given range.',
+	)
+);
+$parser->addOption('migrations_path', array(
+	'short_name'  => '-m',
+	'long_name'   => '--migrations-path',
+	'action'      => 'StoreString',
+	'description' => "Path to directory where migrations are stored.  If this is not specified the default path from Kohana config/migrations.php will be used.",
+	'help_name'   => 'PATH',
+	)
+);
+$parser->addOption('skip_schema_version', array(
+	'short_name'  => '-s',
+	'long_name'   => '--skip-schema-version',
+	'action'      => 'StoreTrue',
+	'description' => "Don't update the schema_version table after running migrations.",
+	)
+);
+$parser->addArgument('version', array('description' => 'Version to migrate to.   This may be a single version (e.g. 5), or a version range (e.g. 20120101000039:20120104192233).  A version range of X:Y will migrate from X (exclusive) to Y (inclusive).  You may also use X: to migrate from X to the latest schema version.  Optional.  If not specified, then this will migrate all un migrated versions.  You may also add a minus or plus (- or +) at the beginning of a version number, to indicate that you would like to run that single migration down or up. (e.g. -20120101000039 or +20120101000039).  Note that to use a minus sign, you must add -- before your version argument to indicate that the version argument is not a command line option. (e.g.  bin/migrate -- -20120101000039).', 'optional' => true));
+$commands['status']   = $parser->addCommand('status', array('description' => 'Prints out database migration status, including the current database version.'));
+$commands['generate'] = $parser->addCommand('generate', array('description' => 'Generates a new skeleton migration file'));
+$commands['generate']->addArgument('migration_name', array('description' => "Name of the migration.  This will be the migration's class name."));
+
+
+// run the parser
+try 
+{
+	$result            = $parser->parse();
+	$options           = $result->options;  
+	$command_name      = $result->command_name;  	// the name of the command to run
+	$command           = $result->command;  		// a Console_CommandLine command object
+	if (!empty($command))
+		$command_arguments = $command->args;  		 	// arguments for this command	
+
+	$version           = $result->args['version'];
+} 
+catch (Exception $exception) 
+{
+    $parser->displayError($exception->getMessage());
+}
+
+
+// initialize common things for CS PHP CLI scripts.  
+// See bin/README for a readable version of this code.
+$s='cs.php';$d=__FILE__;while($d != '/'){$d=dirname($d);$f=scandir($d);if(in_array($s,$f)){$b=$d.DIRECTORY_SEPARATOR.$s;break;}}if(!$b){echo"Could not load find cs.php bootstrap file.\n";exit(1);}require_once($b);unset($codebase,$s,$d,$f,$b);
+
+
+
+// if the schema_version table does not exist, then install it now
+if (!Migrations::is_installed() && !$options['dry_run'])
+{
+	echo "Migrations have not yet been installed.  Installing schema_version table now.\n";
+	Migrations::install();
+}
+
+
+
+// if output only, then set Migrations verbosity level to 0.
+if ($options['output_only'])
+{
+	$verbosity = Migrations::VERBOSITY_0;
+}
+
+// if skip_schema_version then set this to true
+// and pass it to the Migrations constructor.
+if ($options['skip_schema_version'])
+{
+    $track_migrations = false;
+}
+else
+{
+    $track_migrations = true;
+}
+
+// instantiate the Migrations class 
+$migrations = new Migrations($options['migrations_path'], $verbosity, $track_migrations);
+
+if ($options['dry_run']) 
+{
+	$migrations->dry_run = true;
+}
+
+
+
+switch ($command_name) {
+	case 'status':
+		echo $migrations->status();
+		break;
+	
+	case 'generate':
+		$migrations->generate($command_arguments['migration_name']);
+		break;
+		
+	default:
+		// if version was not specified, then migrate to the latest version
+		$version = isset($version) ? $version : $migrations->latest_available_schema_version();
+
+		// if the version starts with a -, then we want to run
+		// that migration's down method.  Run from
+		// version X to version X - 1.
+		if (strpos($version, '-') === 0)
+		{
+			$from_version = substr($version, 1) ;
+			$to_version   = $from_version - 1;
+		}
+		// if the version starts with a +, then we want to run
+		// that version's up method.  Run from 
+		// version X -1 to version X.
+		elseif (strpos($version, '+') === 0)
+		{
+			$to_version   = substr($version, 1);
+			$from_version = $to_version - 1;
+		}
+		// else if we given a version range to run, then
+		// find run all migrations in that range.
+		elseif (strpos($version, ':'))
+		{
+            // if we are using the schema_version table,
+            // then a to_version does not need to be specified.
+		    if ($migrations->track_migrations)
+		    {
+		        $pattern = "/" . Migrations::SCHEMA_VERSION_REGEX . ":" . Migrations::SCHEMA_VERSION_REGEX ."?/";
+		    }
+            // else if we are not using schema_version,
+            // then a specific version range is necessary.
+		    else
+		    {
+		        $pattern = "/" . Migrations::SCHEMA_VERSION_REGEX . ":" . Migrations::SCHEMA_VERSION_REGEX ."/";
+		    }
+		        
+			if (preg_match($pattern, $version, $matches))
+			{
+				$from_version = $matches[1];
+				$to_version   = $matches[2];
+
+				if (empty($to_version) && $to_version !== '0')
+				{
+					$to_version = $migrations->latest_available_schema_version();
+				}
+			}
+			else
+			{
+			    $error_message = "Invalid version argument: '$version'.";
+			    if (!$migrations->track_migrations)
+			    {
+	                echo "Non-tracked migrations must have a range specified (e.g. 20111127223437:20111127223439, or 	20111127223445:20111127223437).";
+            	}
+			    
+				$parser->displayError($error_message);
+			}
+		}
+		else
+		{
+            // if there was no ':' in the specified migration version
+            // and we are not using the schema_version table (because of
+            // --skip-schema-version), then print an error message and die.
+            // you must specify specfic migration ranges when running without
+            // schema_version.
+            if (!$migrations->track_migrations)
+            {
+                echo "Non-tracked migrations must have a range specified (e.g. 20111127223437:20111127223439, or 20111127223445:20111127223437).";
+                echo "Migration failed\n";
+                exit(1);
+            }
+			
+			$last_run_version = $migrations->last_run_schema_version();
+			// if the given $version is less than the most recent run version, 
+			// then run from the most recent run version down to $version.
+			// else, run up from 0 all the way to version.
+			// NOTE:  This only runs migrations in this range that have not been run.
+			$from_version = ($version < $last_run_version) ? $last_run_version : 0;
+			$to_version   = $version;
+		}
+		
+		try {
+			$migrations->validate_version($to_version);
+			$migrations->validate_version($from_version);
+		}
+		catch (Exception $e)
+		{
+			echo $e->getMessage() . "\n";
+			echo "Migration failed.\n";
+			exit(1);
+		}
+
+		$result = $migrations->migrate($to_version, $from_version, $options['output_only'], $options['all_migrations']);
+		
+		if (!$result)
+		{
+			echo "Migration failed.\n";
+			exit(1);
+		}
+		else
+			exit(0);
+		break;
+}

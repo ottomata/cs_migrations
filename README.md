@@ -153,7 +153,7 @@ This will print out only the migration SQL suitable for running on a MySQL
 instance.  You may save this output in a file, or copy and paste it to run it.
 
 # bin/migrate script
-## --help
+## usage help
     $ bin/migrate --help
     Database Migration Command Line Interface
     
@@ -200,7 +200,7 @@ instance.  You may save this output in a file, or copy and paste it to run it.
       status    Prints out database migration status, including the current
                 database version.
       generate  Generates a new skeleton migration file
-## example --status
+## status command
     $ bin/migrate status
 
     Database Schema Migration Status

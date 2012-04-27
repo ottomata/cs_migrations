@@ -54,7 +54,7 @@ need to.  Statements will be run in the order that they are added.
 The migrate script (located in bin/migrate) can generate skeleton migration 
 files for you.  See the help info by running 'migrate --help'.
 
-h1. Schema Migration
+# Schema Migration
 The schema_migration table is used to keep track of which schema version your 
 database is currently at.  When you update your codebase, you could possibly 
 then get a new migration file from another developer.  When you run migrate,

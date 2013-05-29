@@ -29,6 +29,7 @@ is used to migrate backwards.
 # Example
 Example File: 20120104192233_AlterMyTable.php
 
+```php
     class AlterMyTable extends Migration
     {
       public function up()
@@ -44,6 +45,7 @@ Example File: 20120104192233_AlterMyTable.php
         $this->statement('main', 'ALTER TABLE `my_table` DROP COLUMN `newcol`;');
       }
     }
+```
 
 This migrations 'up' method adds a statement to alter the table 'my_table' on 
 the database connection 'main'.  The Migration#statement() method is the 
@@ -69,6 +71,7 @@ developer and run svn update before continuing to work.  Oh!  Look!  Someone
 checked in a new migration!  I will run the migrate script to make sure my 
 database is up to date as well:
 
+```bash
     $ bin/migrate
     Migrating up to version 20120104192233
     Migrating up through schema version 20120104192233: 'create_boogers_table'...
@@ -81,6 +84,7 @@ database is up to date as well:
     CREATE TABLE boogers (id INT, data VARCHAR(100));
     
     Success!
+```
 
 Yay! Look now I have that new boogers table.  That boogers table was the best 
 idea ever.  Great.  Now let me get back to coding.
@@ -97,6 +101,7 @@ Now I will go edit that file and add the index.  Oh yeah, and I can't forget
 to add proper instructions on how to migrate back down as well.  Ah, there
 we go, now it looks like this:
 
+```php
     class boogers_add_data_index extends Migration
     {
     	public function up()
@@ -109,6 +114,7 @@ we go, now it looks like this:
     		$this->statement('main', "ALTER TABLE `booger` DROP INDEX `data`;");
     	}
     }		
+```
 
 Beautiful.  Now I can run the migrate script to get the index, and check this 
 file in so that other developers can get the index on their databases as well.
@@ -119,6 +125,7 @@ supports this, but it is best if you do not use the statement() method to run
 direct CREATE and DROP DATABASE statements.  Instead, use the methods 
 create_database() and drop_database().  To create a new database:
 
+```php
     class create_cs_yay_database extends Migration
     {
     	public function up()
@@ -131,6 +138,7 @@ create_database() and drop_database().  To create a new database:
     		$this->drop_database('cs_yay');
     	}
     }		
+```
 
 Notice that neither of these methods actually take any SQL or a database name.  
 The database name to create or dropped will be inferred from the database 
@@ -154,6 +162,7 @@ instance.  You may save this output in a file, or copy and paste it to run it.
 
 # bin/migrate script
 ## usage help
+```bash
     $ bin/migrate --help
     Database Migration Command Line Interface
     
@@ -200,7 +209,11 @@ instance.  You may save this output in a file, or copy and paste it to run it.
       status    Prints out database migration status, including the current
                 database version.
       generate  Generates a new skeleton migration file
+```
+
 ## status command
+
+```bash
     $ bin/migrate status
 
     Database Schema Migration Status
@@ -216,3 +229,4 @@ instance.  You may save this output in a file, or copy and paste it to run it.
     | tr_i18n_archive                                               | 20120101000005 | 2012-01-17 20:27:49 |
     | drop_org_goal_tables                                          | 20120101000006 | 2012-01-17 20:27:49 |
     ...
+```
